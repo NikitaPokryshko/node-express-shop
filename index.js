@@ -22,6 +22,8 @@ app.set('views', 'views'); // by default - views, we can declare different name 
 // Register static folder
 app.use(express.static('public')) // to register static folder
 
+app.use(express.urlencoded({ extended: true })); // middleware to parse request body
+
 // App routes
 app.use('/', homeRoutes); // Without prefix - app.use(homeRoutes);
 app.use('/add', addRoutes);
@@ -34,7 +36,6 @@ app.use('/courses', coursesRoutes);
  * res.render('index') // for index.handlebars (index.hbs)
  */
 
-// TODO: Initialize with git
 // Without router
 // app.get('/', (req, res) => {
 //   res.render('index', {
