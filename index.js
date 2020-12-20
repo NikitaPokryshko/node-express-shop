@@ -5,6 +5,7 @@ const exphbs = require('express-handlebars');
 const homeRoutes = require('./routes/home');
 const addRoutes = require('./routes/add');
 const coursesRoutes = require('./routes/courses');
+const cartRoutes = require('./routes/cart');
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.set('views', 'views'); // by default - views, we can declare different name 
 // End of Handlebars setup
 
 // Register static folder
-app.use(express.static('public')) // to register static folder
+app.use(express.static(path.join(__dirname, 'public'))) // to register static folder
 
 app.use(express.urlencoded({ extended: true })); // middleware to parse request body
 
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true })); // middleware to parse request 
 app.use('/', homeRoutes); // Without prefix - app.use(homeRoutes);
 app.use('/add', addRoutes);
 app.use('/courses', coursesRoutes);
+app.use('/cart', cartRoutes);
 
 /**
  * res.status(200) // by default status: 200 
