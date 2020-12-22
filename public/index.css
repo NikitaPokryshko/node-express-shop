@@ -22,6 +22,10 @@
   height: auto;
 }
 
+.course-form {
+  margin-bottom: 2rem;
+}
+
 .course .price.big {
   font-size: 2.5rem;
 }
