@@ -29,7 +29,11 @@
     </strong>
   </p>
 
+  <form action="/orders" method="POST">
+    <button type="submit" class="btn">Make an Order</button>
+  </form>
+
   {{else}}
-  <p>Корзина пуста</p>
+  <p>Cart is empty :(</p>
   {{/if}}
 </div>

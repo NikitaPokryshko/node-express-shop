@@ -1,27 +1,32 @@
-const { Router } = require('express');
-const Course = require('../models/course');
+const { Router } = require("express");
+const Course = require("../models/course");
 
-const router = Router()
+const router = Router();
 
-router.get('/', (req, res) => {
-  res.render('add', {
-    title: 'Add Course',
+router.get("/", (req, res) => {
+  res.render("add", {
+    title: "Add Course",
     isAdd: true,
-  })
+  });
 });
 
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   const { title, price, img } = req.body;
 
-  const course = new Course({ title, price, img });
+  const course = new Course({
+    title,
+    price,
+    img,
+    userId: req.user,
+  });
 
   try {
     await course.save();
 
-    res.redirect('/courses');
+    res.redirect("/courses");
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
 });
 
-module.exports = router
+module.exports = router;
