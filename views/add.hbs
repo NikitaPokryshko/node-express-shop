@@ -16,5 +16,8 @@
     <label for="img">Image URL</label>
     <span class="helper-text" data-error="Add image URL"></span>
   </div>
+  {{!-- Middleware will look at _csrf name and throw csrf value from middleware/variables => req.locals --}}
+  <input type="hidden" name="_csrf" value="{{csrf}}">
+
   <button class="btn btn-primary">Add Course</button>
 </form>

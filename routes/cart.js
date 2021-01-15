@@ -1,9 +1,13 @@
 const { Router } = require("express");
 const Course = require("../models/course");
+const authMiddleware = require("../middleware/auth");
 
 const router = Router();
 
 function mapCartItems(cart) {
+  console.log('CART', cart);
+  // TODO: If course was removed, but exists in the cart - will produce an error
+  // TypeError: Cannot read property '_doc' of null (because courseId will be 'null')
   return cart.items.map((c) => {
     return {
       ...c.courseId._doc,
@@ -19,7 +23,7 @@ function computePrice(courses) {
   }, 0);
 }
 
-router.post("/add", async (req, res) => {
+router.post("/add", authMiddleware, async (req, res) => {
   const course = await Course.findById(req.body.id);
 
   await req.user.addToCart(course);
@@ -27,7 +31,7 @@ router.post("/add", async (req, res) => {
   res.redirect("/cart");
 });
 
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   const user = await req.user
     .populate("cart.items.courseId")
     .execPopulate();
@@ -42,7 +46,7 @@ router.get("/", async (req, res) => {
   });
 });
 
-router.delete("/remove/:id", async (req, res) => {
+router.delete("/remove/:id", authMiddleware, async (req, res) => {
   await req.user.removeFromCart(req.params.id);
 
   const user = await req.user

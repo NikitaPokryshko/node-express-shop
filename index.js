@@ -1,23 +1,33 @@
 require("dotenv").config();
 
+// Libraries
 const express = require("express");
 const path = require("path");
-
-const Handlebars = require("handlebars");
-const exphbs = require("express-handlebars");
-const {
-  allowInsecurePrototypeAccess,
-} = require("@handlebars/allow-prototype-access");
-
+const csrf = require("csurf");
+const flash = require("connect-flash");
+const session = require("express-session");
+const MongoStore = require("connect-mongodb-session")(session);
 const mongoose = require("mongoose");
 
+// Handlebars
+const Handlebars = require("handlebars");
+const exphbs = require("express-handlebars");
+const { allowInsecurePrototypeAccess } = require("@handlebars/allow-prototype-access");
+
+// Routes
 const homeRoutes = require("./routes/home");
 const addRoutes = require("./routes/add");
 const coursesRoutes = require("./routes/courses");
 const cartRoutes = require("./routes/cart");
 const ordersRoutes = require("./routes/orders");
+const authRoutes = require("./routes/auth");
 
-const User = require("./models/user");
+// Middlewares
+const varMiddleware = require("./middleware/variables");
+const userMiddleware = require("./middleware/user");
+
+const { DB_PASSWORD, DB_NAME, DB_USER, DB_CLUSTER_URL, PORT } = process.env;
+const MONGO_DB_URI = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER_URL}/${DB_NAME}`;
 
 const app = express();
 
@@ -31,65 +41,61 @@ const hbs = exphbs.create({
   handlebars: allowInsecurePrototypeAccess(Handlebars),
 });
 
+const store = new MongoStore({
+  // Collection name for sessions storing
+  collection: 'sessions',
+  uri: MONGO_DB_URI,
+});
+
 app.engine("hbs", hbs.engine);
 app.set("view engine", "hbs");
 app.set("views", "views"); // by default - views, we can declare different name of views folder
 // End of Handlebars setup
 
-// Temprorary TODO: Delete after
-app.use(async (req, res, next) => {
-  try {
-    const user = await User.findById("5fe2779e0528509cb30f98c9");
 
-    req.user = user;
-
-    next();
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-// Register static folder
+// Registering static folder
 app.use(express.static(path.join(__dirname, "public")));
 
 // Middleware to parse request body
 app.use(express.urlencoded({ extended: true }));
 
-// App routes
+// Registering and configuring session
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store,
+}))
+// CSRF token checking middleware
+app.use(csrf())
+// Connect-flash middleware for validation
+app.use(flash())
+
+// Registering my app middlewares
+app.use(varMiddleware)
+app.use(userMiddleware)
+
+// Registering app routes
 app.use("/", homeRoutes); // Without prefix - app.use(homeRoutes);
 app.use("/add", addRoutes);
 app.use("/courses", coursesRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", ordersRoutes);
+app.use("/auth", authRoutes);
 
-const PORT = process.env.PORT || 3000;
+const APP_PORT = PORT || 3000;
 
-const { DB_PASSWORD, DB_NAME, DB_USER, DB_CLUSTER_URL } = process.env;
-
-const databaseUrl = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER_URL}/${DB_NAME}`;
 
 async function start() {
   try {
     console.log("Connecting to MongoDB remote server...");
-    await mongoose.connect(databaseUrl, {
+    await mongoose.connect(MONGO_DB_URI, {
       useNewUrlParser: true,
       useFindAndModify: false,
     });
 
-    // Temporary data to stub fake single user
-    const candidate = await User.findOne();
-    if (!candidate) {
-      const user = new User({
-        email: "pokryshko.n@gmail.com",
-        name: "Nikitooos",
-        cart: { items: [] },
-      });
-
-      await user.save();
-    }
-
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+    app.listen(APP_PORT, () => {
+      console.log(`Server is running on port ${APP_PORT}`);
     });
   } catch (err) {
     console.log(err);
