@@ -10,7 +10,7 @@
       {{#if loginError}}
         <p class="alert">{{loginError}}</p>
       {{/if}}
-      <h3>Enter</h1>
+      <h3>Enter</h3>
       <form action="/auth/login" method="POST">
         <div class="input-field">
           <input id="email" name="email" type="email" class="validate" required>
@@ -26,6 +26,8 @@
         {{!-- Middleware will look at _csrf name and throw csrf value from middleware/variables => req.locals --}}
         <input type="hidden" name="_csrf" value="{{csrf}}">
 
+        <p><a href="/auth/reset">Forgot password?</a></p>
+
         <button class="btn btn-primary" type="submit">Log in</button>
       </form>
     </div>
@@ -33,7 +35,7 @@
       {{#if registerError}}
         <p class="alert">{{registerError}}</p>
       {{/if}}
-      <h3>Create an account</h1>
+      <h3>Create an account</h3>
       <form action="/auth/register" method="POST">
         <div class="input-field">
           <input id="remail" name="email" type="email" class="validate" required>
@@ -63,5 +65,4 @@
       </form>
     </div>
   </div>
-</div>
 </div>

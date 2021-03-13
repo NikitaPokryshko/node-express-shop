@@ -26,8 +26,7 @@ const authRoutes = require("./routes/auth");
 const varMiddleware = require("./middleware/variables");
 const userMiddleware = require("./middleware/user");
 
-const { DB_PASSWORD, DB_NAME, DB_USER, DB_CLUSTER_URL, PORT } = process.env;
-const MONGO_DB_URI = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER_URL}/${DB_NAME}`;
+const configKeys = require("./keys");
 
 const app = express();
 
@@ -44,7 +43,7 @@ const hbs = exphbs.create({
 const store = new MongoStore({
   // Collection name for sessions storing
   collection: 'sessions',
-  uri: MONGO_DB_URI,
+  uri: configKeys.MONGO_DB_URI,
 });
 
 app.engine("hbs", hbs.engine);
@@ -61,7 +60,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Registering and configuring session
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: configKeys.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   store,
@@ -83,19 +82,17 @@ app.use("/cart", cartRoutes);
 app.use("/orders", ordersRoutes);
 app.use("/auth", authRoutes);
 
-const APP_PORT = PORT || 3000;
-
 
 async function start() {
   try {
     console.log("Connecting to MongoDB remote server...");
-    await mongoose.connect(MONGO_DB_URI, {
+    await mongoose.connect(configKeys.MONGO_DB_URI, {
       useNewUrlParser: true,
       useFindAndModify: false,
     });
 
-    app.listen(APP_PORT, () => {
-      console.log(`Server is running on port ${APP_PORT}`);
+    app.listen(configKeys.APP_PORT, () => {
+      console.log(`Server is running on port ${configKeys.APP_PORT}`);
     });
   } catch (err) {
     console.log(err);
