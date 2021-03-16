@@ -38,6 +38,8 @@ const hbs = exphbs.create({
   extname: "hbs",
   // to allow specifying of runtime-options to pass to the template function (handlebars + mongoose)
   handlebars: allowInsecurePrototypeAccess(Handlebars),
+
+  helpers: require('./utils/hbs-helpers')
 });
 
 const store = new MongoStore({
