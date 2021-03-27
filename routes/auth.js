@@ -1,11 +1,14 @@
 const { Router } = require("express");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const { validationResult } = require('express-validator');
 
 const emailService = require("../emails/service");
 const { getRegistrationEmail, getResetEmail } = require("../emails/templates");
+const { registerValidators, loginValidators } = require('../utils/validators');
 
 const User = require("../models/user");
+
 const router = Router();
 
 router.get("/login", async (req, res) => {
@@ -23,63 +26,56 @@ router.get("/logout", async (req, res) => {
   });
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginValidators, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
-    const candidate = await User.findOne({ email });
+    const errors = validationResult(req);
 
-    if (candidate) {
-      const isSame = await bcrypt.compare(password, candidate.password);
-
-      if (isSame) {
-        req.session.user = candidate;
-        req.session.isAuthenticated = true;
-        // Make the redirect wait until the variables are initialized
-        req.session.save((err) => {
-          if (err) {
-            throw err;
-          }
-
-          res.redirect("/");
-        });
-      } else {
-        req.flash('loginError', 'Wrong password')
-        res.redirect("/auth/login#login");
-      }
-    } else {
-      req.flash('loginError', 'This user is not exist')
-      res.redirect("/auth/login#login");
+    if (!errors.isEmpty()) {
+      req.flash('loginError', errors.array()[0].msg)
+      return res.status(422).redirect('/auth/login#login')
     }
+
+    req.session.user = await User.findOne({ email });;
+    req.session.isAuthenticated = true;
+    // Make the redirect wait until the variables are initialized
+    req.session.save((err) => {
+      if (err) {
+        throw err;
+      }
+
+      res.redirect("/");
+    });
+
   } catch (err) {
     console.log(err);
   }
 });
 
-router.post("/register", async (req, res) => {
+router.post("/register", registerValidators, async (req, res) => {
   try {
-    const { email, password, confirm, name } = req.body;
+    const { email, password, name } = req.body;
 
-    const candidate = await User.findOne({ email });
+    const errors = validationResult(req);
 
-    if (candidate) {
-      req.flash('registerError', 'User with the same email already exists')
-      res.redirect("/auth/login#register");
-    } else {
-      const hashPassword = await bcrypt.hash(password, 10);
-
-      const user = new User({
-        email,
-        name,
-        password: hashPassword,
-        cart: { items: [] }
-      });
-
-      await user.save();
-      res.redirect("/auth/login#login");
-
-      await emailService.send(getRegistrationEmail(email))
+    if (!errors.isEmpty()) {
+      req.flash('registerError', errors.array()[0].msg)
+      return res.status(422).redirect('/auth/login#register')
     }
+
+    const hashPassword = await bcrypt.hash(password, 10);
+    const user = new User({
+      email,
+      name,
+      password: hashPassword,
+      cart: { items: [] }
+    });
+
+    await user.save();
+    res.redirect("/auth/login#login");
+
+    await emailService.send(getRegistrationEmail(email))
   } catch (err) {
     console.log(err);
   }
@@ -92,7 +88,7 @@ router.get('/reset', (req, res) => {
   })
 });
 
-router.post('/reset',(req, res) => {
+router.post('/reset', (req, res) => {
   try {
     crypto.randomBytes(32, async (err, buffer) => {
       if (err) {

@@ -1,7 +1,8 @@
 const { Router } = require("express");
+const { validationResult } = require('express-validator');
 const Course = require("../models/course");
 const authMiddleware = require("../middleware/auth");
-
+const { courseValidators } = require('../utils/validators');
 const router = Router();
 
 function isOwner(course, req) {
@@ -24,9 +25,17 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/edit", authMiddleware, async (req, res) => {
+router.post("/edit", authMiddleware, courseValidators, async (req, res) => {
+  const { id, ...rest } = req.body;
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    // We don't have course, so we can't rely on the fields for sending them to UI
+    // TODO: Can be changed with request for Course by id and if exists - send error data for each field
+    return res.status(422).redirect(`/courses/${id}/edit?allow=true`);
+  }
+
   try {
-    const { id, ...rest } = req.body;
     const course = await Course.findById(id)
 
     if (!isOwner(course, req)) {
@@ -51,7 +60,7 @@ router.get("/:id/edit", authMiddleware, async (req, res) => {
     const course = await Course.findById(req.params.id);
 
     if (!isOwner(course, req)) {
-      console.log('redirect /courses')
+
       return res.redirect('/courses')
     }
 

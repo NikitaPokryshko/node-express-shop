@@ -21,10 +21,13 @@ const coursesRoutes = require("./routes/courses");
 const cartRoutes = require("./routes/cart");
 const ordersRoutes = require("./routes/orders");
 const authRoutes = require("./routes/auth");
+const profileRoutes = require('./routes/profile');
 
 // Middlewares
 const varMiddleware = require("./middleware/variables");
 const userMiddleware = require("./middleware/user");
+const errorMiddleware = require('./middleware/error');
+const fileMiddleware = require('./middleware/file');
 
 const configKeys = require("./keys");
 
@@ -56,6 +59,8 @@ app.set("views", "views"); // by default - views, we can declare different name 
 
 // Registering static folder
 app.use(express.static(path.join(__dirname, "public")));
+// By passing '/images' we say that images should be inside 'images' folder, not in the root
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Middleware to parse request body
 app.use(express.urlencoded({ extended: true }));
@@ -67,6 +72,10 @@ app.use(session({
   saveUninitialized: false,
   store,
 }))
+
+// File upload middleware
+app.use(fileMiddleware.single('avatar'))
+
 // CSRF token checking middleware
 app.use(csrf())
 // Connect-flash middleware for validation
@@ -76,6 +85,7 @@ app.use(flash())
 app.use(varMiddleware)
 app.use(userMiddleware)
 
+
 // Registering app routes
 app.use("/", homeRoutes); // Without prefix - app.use(homeRoutes);
 app.use("/add", addRoutes);
@@ -83,7 +93,11 @@ app.use("/courses", coursesRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", ordersRoutes);
 app.use("/auth", authRoutes);
+app.use('/profile', profileRoutes)
 
+// This route should be registered after all main routes
+// In other case, other routes can't be achieved
+app.use(errorMiddleware)
 
 async function start() {
   try {
