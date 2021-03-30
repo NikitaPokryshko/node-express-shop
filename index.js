@@ -113,8 +113,8 @@ async function start() {
       useFindAndModify: false,
     });
 
-    app.listen(configKeys.APP_PORT, () => {
-      console.log(`Server is running on port ${configKeys.APP_PORT}`);
+    app.listen(configKeys.PORT, () => {
+      console.log(`Server is running on port ${configKeys.PORT}`);
     });
   } catch (err) {
     console.log(err);

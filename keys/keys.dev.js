@@ -4,7 +4,7 @@ const {
   DB_USER,
   DB_CLUSTER_URL,
   SESSION_SECRET,
-  APP_PORT,
+  PORT,
   SENDGRID_API_KEY
 } = process.env;
 
@@ -14,7 +14,7 @@ module.exports = {
   MONGO_DB_URI: `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER_URL}/${DB_NAME}`,
   SESSION_SECRET,
   SENDGRID_API_KEY,
-  APP_PORT: APP_PORT || DEFAULT_APP_PORT,
+  PORT: PORT || DEFAULT_APP_PORT,
   EMAIL_FROM: 'pokryshko.n@gmail.com',
   BASE_URL: 'http://localhost:3000'
 }
