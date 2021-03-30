@@ -8,6 +8,8 @@ const flash = require("connect-flash");
 const session = require("express-session");
 const MongoStore = require("connect-mongodb-session")(session);
 const mongoose = require("mongoose");
+const helmet = require('helmet');
+const compression = require('compression');
 
 // Handlebars
 const Handlebars = require("handlebars");
@@ -78,8 +80,12 @@ app.use(fileMiddleware.single('avatar'))
 
 // CSRF token checking middleware
 app.use(csrf())
-// Connect-flash middleware for validation
+// Connect flash middleware for validation
 app.use(flash())
+// Connect helmet for additional http headers for protection
+app.use(helmet())
+// Connect compression for static files
+app.use(compression())
 
 // Registering my app middlewares
 app.use(varMiddleware)
