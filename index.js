@@ -83,7 +83,9 @@ app.use(csrf())
 // Connect flash middleware for validation
 app.use(flash())
 // Connect helmet for additional http headers for protection
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: false, // To allow loading of remote course images
+}))
 // Connect compression for static files
 app.use(compression())
 
